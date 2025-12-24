@@ -2,12 +2,46 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema, } from "@modelcontextprotocol/sdk/types.js";
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const DOCS_DIR = join(__dirname, "../docs");
+// Импортируем все файлы документации напрямую
+import configSchema from "../docs/config-schema.json?raw";
+import controlsOverview from "../docs/controls-overview.md?raw";
+import specValuesOverview from "../docs/spec-values-overview.md?raw";
+// Импортируем контролы
+import checkboxDocs from "../docs/controls/checkbox.md?raw";
+import dateInputDocs from "../docs/controls/date-input.md?raw";
+import multiSelectDocs from "../docs/controls/multi-select.md?raw";
+import numberInputDocs from "../docs/controls/number-input.md?raw";
+import passwordInputDocs from "../docs/controls/password-input.md?raw";
+import radioGroupDocs from "../docs/controls/radio-group.md?raw";
+import selectDocs from "../docs/controls/select.md?raw";
+import textInputDocs from "../docs/controls/text-input.md?raw";
+import textareaDocs from "../docs/controls/textarea.md?raw";
+// Импортируем spec values
+import arraySpecDocs from "../docs/spec-values/ArraySpec.md?raw";
+import booleanSpecDocs from "../docs/spec-values/BooleanSpec.md?raw";
+import numberSpecDocs from "../docs/spec-values/NumberSpec.md?raw";
+import objectSpecDocs from "../docs/spec-values/ObjectSpec.md?raw";
+import stringSpecDocs from "../docs/spec-values/StringSpec.md?raw";
+// Маппинг контролов на их документацию
+const CONTROLS_DOCS = {
+    checkbox: checkboxDocs,
+    "date-input": dateInputDocs,
+    "multi-select": multiSelectDocs,
+    "number-input": numberInputDocs,
+    "password-input": passwordInputDocs,
+    "radio-group": radioGroupDocs,
+    select: selectDocs,
+    "text-input": textInputDocs,
+    textarea: textareaDocs,
+};
+// Маппинг spec values на их документацию
+const SPEC_VALUES_DOCS = {
+    ArraySpec: arraySpecDocs,
+    BooleanSpec: booleanSpecDocs,
+    NumberSpec: numberSpecDocs,
+    ObjectSpec: objectSpecDocs,
+    StringSpec: stringSpecDocs,
+};
 // Список доступных контролов
 const AVAILABLE_CONTROLS = [
     "checkbox",
@@ -111,25 +145,21 @@ class DynamicFormsMCPServer {
             const { name, arguments: args } = request.params;
             try {
                 if (name === "get_config_schema") {
-                    const schemaPath = join(DOCS_DIR, "config-schema.json");
-                    const schemaContent = readFileSync(schemaPath, "utf-8");
                     return {
                         content: [
                             {
                                 type: "text",
-                                text: schemaContent,
+                                text: configSchema,
                             },
                         ],
                     };
                 }
                 if (name === "list_controls") {
-                    const controlsPath = join(DOCS_DIR, "controls-overview.md");
-                    const controlsContent = readFileSync(controlsPath, "utf-8");
                     return {
                         content: [
                             {
                                 type: "text",
-                                text: controlsContent,
+                                text: controlsOverview,
                             },
                         ],
                     };
@@ -142,8 +172,10 @@ class DynamicFormsMCPServer {
                     if (!AVAILABLE_CONTROLS.includes(controlName)) {
                         throw new Error(`Контрол '${controlName}' не найден. Используйте list_controls для просмотра доступных контролов.`);
                     }
-                    const controlPath = join(DOCS_DIR, "controls", `${controlName}.md`);
-                    const controlContent = readFileSync(controlPath, "utf-8");
+                    const controlContent = CONTROLS_DOCS[controlName];
+                    if (!controlContent) {
+                        throw new Error(`Документация для контрола '${controlName}' не найдена`);
+                    }
                     return {
                         content: [
                             {
@@ -154,13 +186,11 @@ class DynamicFormsMCPServer {
                     };
                 }
                 if (name === "list_spec_values") {
-                    const specValuesPath = join(DOCS_DIR, "spec-values-overview.md");
-                    const specValuesContent = readFileSync(specValuesPath, "utf-8");
                     return {
                         content: [
                             {
                                 type: "text",
-                                text: specValuesContent,
+                                text: specValuesOverview,
                             },
                         ],
                     };
@@ -173,8 +203,10 @@ class DynamicFormsMCPServer {
                     if (!AVAILABLE_SPEC_VALUES.includes(specName)) {
                         throw new Error(`Spec '${specName}' не найден. Используйте list_spec_values для просмотра доступных Spec значений.`);
                     }
-                    const specPath = join(DOCS_DIR, "spec-values", `${specName}.md`);
-                    const specContent = readFileSync(specPath, "utf-8");
+                    const specContent = SPEC_VALUES_DOCS[specName];
+                    if (!specContent) {
+                        throw new Error(`Документация для Spec '${specName}' не найдена`);
+                    }
                     return {
                         content: [
                             {

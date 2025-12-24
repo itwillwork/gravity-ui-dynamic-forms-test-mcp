@@ -3,11 +3,40 @@
 import { build } from 'esbuild';
 import { readFileSync, writeFileSync, chmodSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const rootDir = join(__dirname, '..');
+
+// Плагин для обработки импортов с ?raw
+const rawPlugin = {
+  name: 'raw',
+  setup(build) {
+    // Обрабатываем импорты с суффиксом ?raw
+    build.onResolve({ filter: /\?raw$/ }, args => {
+      // Разрешаем путь относительно исходного файла
+      const pathWithoutSuffix = args.path.replace(/\?raw$/, '');
+      // args.importer содержит путь к файлу, который делает импорт
+      // Если importer есть, разрешаем относительно него, иначе относительно корня
+      const baseDir = args.importer ? dirname(args.importer) : rootDir;
+      const resolvedPath = resolve(baseDir, pathWithoutSuffix);
+      return {
+        path: resolvedPath,
+        namespace: 'raw',
+      };
+    });
+
+    // Загружаем содержимое файла как текст
+    build.onLoad({ filter: /.*/, namespace: 'raw' }, async (args) => {
+      const contents = readFileSync(args.path, 'utf-8');
+      return {
+        contents: `export default ${JSON.stringify(contents)};`,
+        loader: 'js',
+      };
+    });
+  },
+};
 
 async function createBundle() {
   console.log('Создание standalone bundle...');
@@ -21,6 +50,7 @@ async function createBundle() {
       format: 'esm',
       outfile: join(rootDir, 'dist/bundle.js'),
       external: [],
+      plugins: [rawPlugin],
       // Не используем banner - esbuild автоматически сохранит shebang из исходника
       minify: false,
       sourcemap: false,
