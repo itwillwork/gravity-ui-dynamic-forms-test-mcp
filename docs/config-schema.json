@@ -1,40 +1,65 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Dynamic Forms Specification",
-  "description": "Specification for dynamic forms describing entities, data types, validation rules, and rendering",
+  "title": "Gravity UI Dynamic Forms Spec",
+  "description": "Schema for @gravity-ui/dynamic-forms configuration",
+  "oneOf": [
+    { "$ref": "#/definitions/ArraySpec" },
+    { "$ref": "#/definitions/BooleanSpec" },
+    { "$ref": "#/definitions/NumberSpec" },
+    { "$ref": "#/definitions/ObjectSpec" },
+    { "$ref": "#/definitions/StringSpec" }
+  ],
   "definitions": {
-    "Spec": {
-      "oneOf": [
-        {
-          "$ref": "#/definitions/ArraySpec"
-        },
-        {
-          "$ref": "#/definitions/BooleanSpec"
-        },
-        {
-          "$ref": "#/definitions/NumberSpec"
-        },
-        {
-          "$ref": "#/definitions/ObjectSpec"
-        },
-        {
-          "$ref": "#/definitions/StringSpec"
-        }
-      ]
-    },
-    "ArraySpec": {
+    "BaseViewSpec": {
       "type": "object",
-      "required": [
-        "type",
-        "viewSpec"
-      ],
       "properties": {
         "type": {
           "type": "string",
-          "const": "array",
-          "description": "Entity type"
+          "description": "Key to define Input/View for an entity"
+        },
+        "layout": {
+          "type": "string",
+          "description": "Key to define Layout for an entity"
+        },
+        "layoutTitle": {
+          "type": "string",
+          "description": "Title for Layout"
+        },
+        "layoutDescription": {
+          "type": "string",
+          "description": "Additional description/hint for Layout"
+        },
+        "layoutOpen": {
+          "type": "boolean",
+          "description": "Expand Layout at the first rendering"
+        },
+        "disabled": {
+          "type": "boolean",
+          "description": "Is the field available for editing"
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Hide field and view"
+        },
+        "link": {
+          "description": "A field containing information for forming a link for a value"
+        },
+        "inputProps": {
+          "type": "object",
+          "description": "Additional properties for internal input components"
+        }
+      },
+      "required": ["type"]
+    },
+    "ArraySpec": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "array"
         },
         "defaultValue": {
+          "type": "array",
           "description": "Default value"
         },
         "required": {
@@ -43,14 +68,16 @@
         },
         "maxLength": {
           "type": "integer",
+          "minimum": 0,
           "description": "Maximum number of array elements"
         },
         "minLength": {
           "type": "integer",
+          "minimum": 0,
           "description": "Minimum number of array elements"
         },
         "items": {
-          "$ref": "#/definitions/Spec",
+          "$ref": "#",
           "description": "Entity spec for an array element"
         },
         "enum": {
@@ -72,114 +99,69 @@
           "description": "The key for determining the validator for the entity"
         },
         "viewSpec": {
-          "type": "object",
-          "required": [
-            "type"
-          ],
-          "properties": {
-            "type": {
-              "type": "string",
-              "description": "Key to define Input for an entity"
-            },
-            "disabled": {
-              "type": "boolean",
-              "description": "Is the field available for editing"
-            },
-            "layout": {
-              "type": "string",
-              "description": "Key to define Layout for an entity"
-            },
-            "layoutTitle": {
-              "type": "string",
-              "description": "Title for Layout"
-            },
-            "layoutDescription": {
-              "type": "string",
-              "description": "Additional description/hint for Layout"
-            },
-            "layoutOpen": {
-              "type": "boolean",
-              "description": "Expand Layout at the first rendering"
-            },
-            "itemLabel": {
-              "type": "string",
-              "description": "Text for the button that adds an array element"
-            },
-            "itemPrefix": {
-              "type": "string",
-              "description": "Additional text for an element in the array"
-            },
-            "table": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "required": [
-                  "label",
-                  "property"
-                ],
-                "properties": {
-                  "label": {
-                    "type": "string"
-                  },
-                  "property": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string"
-                  },
-                  "width": {
-                    "type": "number"
-                  }
-                }
-              },
-              "description": "Array for table column configuration"
-            },
-            "link": {
-              "description": "A field containing information for forming a link for a value"
-            },
-            "placeholder": {
-              "type": "string",
-              "description": "A short hint displayed in the field before the user enters the value"
-            },
-            "addButtonPosition": {
-              "type": "string",
-              "enum": [
-                "down",
-                "right"
-              ],
-              "description": "The location of the button adding a new element to the array"
-            },
-            "hidden": {
-              "type": "boolean",
-              "description": "Hide field and view"
-            },
-            "selectParams": {
-              "$ref": "#/definitions/SelectParams",
-              "description": "Additional options for the selector"
-            },
-            "checkboxGroupParams": {
-              "$ref": "#/definitions/CheckboxGroupParams",
-              "description": "Additional options for the checkbox group"
-            },
-            "inputProps": {
+          "allOf": [
+            { "$ref": "#/definitions/BaseViewSpec" },
+            {
               "type": "object",
-              "description": "Additional properties for internal input components"
+              "properties": {
+                "itemLabel": {
+                  "type": "string",
+                  "description": "Text for the button that adds an array element"
+                },
+                "itemPrefix": {
+                  "type": "string",
+                  "description": "Additional text for an element in the array"
+                },
+                "table": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string"
+                      },
+                      "property": {
+                        "type": "string"
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "width": {
+                        "type": "number"
+                      }
+                    },
+                    "required": ["label", "property"]
+                  },
+                  "description": "Array for table column configuration"
+                },
+                "placeholder": {
+                  "type": "string",
+                  "description": "A short hint displayed in the field before the user enters the value"
+                },
+                "addButtonPosition": {
+                  "type": "string",
+                  "enum": ["down", "right"],
+                  "description": "The location of the button adding a new element to the array"
+                },
+                "selectParams": {
+                  "$ref": "#/definitions/SelectParams"
+                },
+                "checkboxGroupParams": {
+                  "$ref": "#/definitions/CheckboxGroupParams"
+                }
+              }
             }
-          }
+          ]
         }
-      }
+      },
+      "required": ["type", "viewSpec"]
     },
     "BooleanSpec": {
       "type": "object",
-      "required": [
-        "type",
-        "viewSpec"
-      ],
       "properties": {
         "type": {
           "type": "string",
-          "const": "boolean",
-          "description": "Entity type"
+          "const": "boolean"
         },
         "defaultValue": {
           "type": "boolean",
@@ -194,61 +176,17 @@
           "description": "The key for determining the validator for the entity"
         },
         "viewSpec": {
-          "type": "object",
-          "required": [
-            "type"
-          ],
-          "properties": {
-            "type": {
-              "type": "string",
-              "description": "Key to define Input for an entity"
-            },
-            "disabled": {
-              "type": "boolean",
-              "description": "Is the field available for editing"
-            },
-            "layout": {
-              "type": "string",
-              "description": "Key to define Layout for an entity"
-            },
-            "layoutTitle": {
-              "type": "string",
-              "description": "Title for Layout"
-            },
-            "layoutDescription": {
-              "type": "string",
-              "description": "Additional description/hint for Layout"
-            },
-            "layoutOpen": {
-              "type": "boolean",
-              "description": "Expand Layout at the first rendering"
-            },
-            "link": {
-              "description": "A field containing information for forming a link for a value"
-            },
-            "hidden": {
-              "type": "boolean",
-              "description": "Hide field and view"
-            },
-            "inputProps": {
-              "type": "object",
-              "description": "Additional properties for internal input components"
-            }
-          }
+          "$ref": "#/definitions/BaseViewSpec"
         }
-      }
+      },
+      "required": ["type", "viewSpec"]
     },
     "NumberSpec": {
       "type": "object",
-      "required": [
-        "type",
-        "viewSpec"
-      ],
       "properties": {
         "type": {
           "type": "string",
-          "const": "number",
-          "description": "Entity type"
+          "const": "number"
         },
         "defaultValue": {
           "type": "number",
@@ -268,10 +206,7 @@
         },
         "format": {
           "type": "string",
-          "enum": [
-            "float",
-            "int64"
-          ],
+          "enum": ["float", "int64"],
           "description": "Validation rule"
         },
         "validator": {
@@ -279,71 +214,35 @@
           "description": "The key for determining the validator for the entity"
         },
         "viewSpec": {
-          "type": "object",
-          "required": [
-            "type"
-          ],
-          "properties": {
-            "type": {
-              "type": "string",
-              "description": "Key to define Input for an entity"
-            },
-            "disabled": {
-              "type": "boolean",
-              "description": "Is the field available for editing"
-            },
-            "layout": {
-              "type": "string",
-              "description": "Key to define Layout for an entity"
-            },
-            "layoutTitle": {
-              "type": "string",
-              "description": "Title for Layout"
-            },
-            "layoutDescription": {
-              "type": "string",
-              "description": "Additional description/hint for Layout"
-            },
-            "layoutOpen": {
-              "type": "boolean",
-              "description": "Expand Layout at the first rendering"
-            },
-            "link": {
-              "description": "A field containing information for forming a link for a value"
-            },
-            "placeholder": {
-              "type": "string",
-              "description": "A short hint displayed in the field before the user enters the value"
-            },
-            "copy": {
-              "type": "boolean",
-              "description": "For true, will add a copy value button"
-            },
-            "hidden": {
-              "type": "boolean",
-              "description": "Hide field and view"
-            },
-            "inputProps": {
+          "allOf": [
+            { "$ref": "#/definitions/BaseViewSpec" },
+            {
               "type": "object",
-              "description": "Additional properties for internal input components"
+              "properties": {
+                "placeholder": {
+                  "type": "string",
+                  "description": "A short hint displayed in the field before the user enters the value"
+                },
+                "copy": {
+                  "type": "boolean",
+                  "description": "For true, will add a copy value button"
+                }
+              }
             }
-          }
+          ]
         }
-      }
+      },
+      "required": ["type", "viewSpec"]
     },
     "ObjectSpec": {
       "type": "object",
-      "required": [
-        "type",
-        "viewSpec"
-      ],
       "properties": {
         "type": {
           "type": "string",
-          "const": "object",
-          "description": "Entity type"
+          "const": "object"
         },
         "defaultValue": {
+          "type": "object",
           "description": "Default value"
         },
         "required": {
@@ -353,7 +252,7 @@
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/Spec"
+            "$ref": "#"
           },
           "description": "Specs of child entities"
         },
@@ -369,79 +268,45 @@
           "description": "The key for determining the validator for the entity"
         },
         "viewSpec": {
-          "type": "object",
-          "required": [
-            "type"
-          ],
-          "properties": {
-            "type": {
-              "type": "string",
-              "description": "Key to define Input for an entity"
-            },
-            "disabled": {
-              "type": "boolean",
-              "description": "Is the field available for editing"
-            },
-            "layout": {
-              "type": "string",
-              "description": "Key to define Layout for an entity"
-            },
-            "layoutTitle": {
-              "type": "string",
-              "description": "Title for Layout"
-            },
-            "layoutDescription": {
-              "type": "string",
-              "description": "Additional description/hint for Layout"
-            },
-            "layoutOpen": {
-              "type": "boolean",
-              "description": "Expand Layout at the first rendering"
-            },
-            "order": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Array of properties keys in the right order"
-            },
-            "link": {
-              "description": "A field containing information for forming a link for a value"
-            },
-            "oneOfParams": {
-              "$ref": "#/definitions/OneOfParams",
-              "description": "Parameters that must be passed to oneof input"
-            },
-            "placeholder": {
-              "type": "string",
-              "description": "A short hint displayed in the field before the user enters the value"
-            },
-            "hidden": {
-              "type": "boolean",
-              "description": "Hide field and view"
-            },
-            "delimiter": {
+          "allOf": [
+            { "$ref": "#/definitions/BaseViewSpec" },
+            {
               "type": "object",
-              "additionalProperties": {
-                "type": "string"
-              },
-              "description": "Values of delimiters of inline object input elements"
+              "properties": {
+                "order": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Array of properties keys in the right order"
+                },
+                "oneOfParams": {
+                  "$ref": "#/definitions/OneOfParams"
+                },
+                "placeholder": {
+                  "type": "string",
+                  "description": "A short hint displayed in the field before the user enters the value"
+                },
+                "delimiter": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "Values of delimiters of inline object input elements"
+                }
+              }
             }
-          }
+          ]
         }
-      }
+      },
+      "required": ["type", "viewSpec"]
     },
     "StringSpec": {
       "type": "object",
-      "required": [
-        "type",
-        "viewSpec"
-      ],
       "properties": {
         "type": {
           "type": "string",
-          "const": "string",
-          "description": "Entity type"
+          "const": "string"
         },
         "defaultValue": {
           "type": "string",
@@ -453,10 +318,12 @@
         },
         "maxLength": {
           "type": "integer",
+          "minimum": 0,
           "description": "Maximum string length"
         },
         "minLength": {
           "type": "integer",
+          "minimum": 0,
           "description": "Minimum string length"
         },
         "pattern": {
@@ -486,112 +353,65 @@
           "description": "The key for determining the validator for the entity"
         },
         "viewSpec": {
-          "type": "object",
-          "required": [
-            "type"
-          ],
-          "properties": {
-            "type": {
-              "type": "string",
-              "description": "Key to define Input for an entity"
-            },
-            "disabled": {
-              "type": "boolean",
-              "description": "Is the field available for editing"
-            },
-            "layout": {
-              "type": "string",
-              "description": "Key to define Layout for an entity"
-            },
-            "layoutTitle": {
-              "type": "string",
-              "description": "Title for Layout"
-            },
-            "layoutDescription": {
-              "type": "string",
-              "description": "Additional description/hint for Layout"
-            },
-            "layoutOpen": {
-              "type": "boolean",
-              "description": "Expand Layout at the first rendering"
-            },
-            "link": {
-              "description": "A field containing information for forming a link for a value"
-            },
-            "hideValues": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              },
-              "description": "Values that are equated to empty"
-            },
-            "sizeParams": {
-              "$ref": "#/definitions/SizeParams",
-              "description": "Parameters for an input with dimensions"
-            },
-            "monacoParams": {
-              "$ref": "#/definitions/MonacoParams",
-              "description": "Parameters for Monaco editor"
-            },
-            "placeholder": {
-              "type": "string",
-              "description": "A short hint displayed in the field before the user enters the value"
-            },
-            "fileInput": {
-              "$ref": "#/definitions/FileInput",
-              "description": "Parameters for file input"
-            },
-            "copy": {
-              "type": "boolean",
-              "description": "For true, will add a copy value button"
-            },
-            "hidden": {
-              "type": "boolean",
-              "description": "Hide field and view"
-            },
-            "textContentParams": {
-              "$ref": "#/definitions/TextContentParams",
-              "description": "Parameters for text content"
-            },
-            "selectParams": {
-              "$ref": "#/definitions/SelectParams",
-              "description": "Additional options for the selector"
-            },
-            "generateRandomValueButton": {
-              "type": "boolean",
-              "description": "Shows a button that allows you to generate a random value"
-            },
-            "inputProps": {
+          "allOf": [
+            { "$ref": "#/definitions/BaseViewSpec" },
+            {
               "type": "object",
-              "description": "Additional properties for internal input components"
-            },
-            "dateInput": {
-              "$ref": "#/definitions/DateInput",
-              "description": "Additional options for the date picker"
-            },
-            "radioGroupParams": {
-              "$ref": "#/definitions/RadioGroupParams",
-              "description": "Additional options for the radio group"
+              "properties": {
+                "hideValues": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Values that are equated to empty"
+                },
+                "sizeParams": {
+                  "$ref": "#/definitions/SizeParams"
+                },
+                "monacoParams": {
+                  "$ref": "#/definitions/MonacoParams"
+                },
+                "placeholder": {
+                  "type": "string",
+                  "description": "A short hint displayed in the field before the user enters the value"
+                },
+                "fileInput": {
+                  "$ref": "#/definitions/FileInput"
+                },
+                "copy": {
+                  "type": "boolean",
+                  "description": "For true, will add a copy value button"
+                },
+                "textContentParams": {
+                  "$ref": "#/definitions/TextContentParams"
+                },
+                "selectParams": {
+                  "$ref": "#/definitions/SelectParams"
+                },
+                "generateRandomValueButton": {
+                  "type": "boolean",
+                  "description": "Shows a button that allows you to generate a random value"
+                },
+                "dateInput": {
+                  "$ref": "#/definitions/DateInput"
+                },
+                "radioGroupParams": {
+                  "$ref": "#/definitions/RadioGroupParams"
+                }
+              }
             }
-          }
+          ]
         }
-      }
+      },
+      "required": ["type", "viewSpec"]
     },
     "SizeParams": {
       "type": "object",
-      "required": [
-        "scale",
-        "defaultType"
-      ],
       "properties": {
         "scale": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
-            "required": [
-              "factor",
-              "title"
-            ],
             "properties": {
               "factor": {
                 "type": "string"
@@ -599,9 +419,10 @@
               "title": {
                 "type": "string"
               }
-            }
+            },
+            "required": ["factor", "title"]
           },
-          "description": "Dimension configuration with factor and title"
+          "description": "The key of the object is the dimension type"
         },
         "defaultType": {
           "type": "string",
@@ -611,13 +432,11 @@
           "type": "string",
           "description": "The type of dimension that will be set at the first render"
         }
-      }
+      },
+      "required": ["scale", "defaultType"]
     },
     "MonacoParams": {
       "type": "object",
-      "required": [
-        "language"
-      ],
       "properties": {
         "language": {
           "type": "string",
@@ -647,20 +466,15 @@
           "type": "number",
           "description": "Size of the dialog icon"
         }
-      }
+      },
+      "required": ["language"]
     },
     "OneOfParams": {
       "type": "object",
       "properties": {
         "toggler": {
           "type": "string",
-          "enum": [
-            "select",
-            "radio",
-            "card",
-            "checkbox",
-            "switch"
-          ],
+          "enum": ["select", "radio", "card", "checkbox", "switch"],
           "description": "Switch type"
         },
         "booleanMap": {
@@ -719,9 +533,6 @@
     },
     "TextContentParams": {
       "type": "object",
-      "required": [
-        "text"
-      ],
       "properties": {
         "themeLabel": {
           "type": "string",
@@ -771,14 +582,7 @@
         },
         "themeIcon": {
           "type": "string",
-          "enum": [
-            "normal",
-            "info",
-            "success",
-            "warning",
-            "danger",
-            "utility"
-          ],
+          "enum": ["normal", "info", "success", "warning", "danger", "utility"],
           "description": "Alert color"
         },
         "titleAlert": {
@@ -787,13 +591,11 @@
         },
         "viewAlert": {
           "type": "string",
-          "enum": [
-            "filled",
-            "outlined"
-          ],
+          "enum": ["filled", "outlined"],
           "description": "Alert view"
         }
-      }
+      },
+      "required": ["text"]
     },
     "SelectParams": {
       "type": "object",
@@ -816,11 +618,8 @@
       "properties": {
         "placement": {
           "type": "string",
-          "enum": [
-            "horizontal",
-            "vertical"
-          ],
-          "description": "Placement checkbox, default horizontal"
+          "enum": ["horizontal", "vertical"],
+          "description": "Placement checkbox"
         },
         "disabled": {
           "type": "object",
@@ -836,11 +635,8 @@
       "properties": {
         "direction": {
           "type": "string",
-          "enum": [
-            "horizontal",
-            "vertical"
-          ],
-          "description": "Direction radio group, default horizontal"
+          "enum": ["horizontal", "vertical"],
+          "description": "Direction radio group"
         },
         "disabled": {
           "type": "object",
@@ -851,6 +647,5 @@
         }
       }
     }
-  },
-  "$ref": "#/definitions/Spec"
+  }
 }
