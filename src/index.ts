@@ -7,8 +7,10 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from "@modelcontextprotocol/sdk/types.js";
+import { Validator, ValidationError } from "jsonschema";
 // Импортируем все файлы документации напрямую
 import configSchema from "../docs/config-schema.json?raw";
+import configSchemaJson from "../docs/config-schema.json";
 import controlsOverview from "../docs/controls-overview.md?raw";
 import specValuesOverview from "../docs/spec-values-overview.md?raw";
 
@@ -158,6 +160,20 @@ class DynamicFormsMCPServer {
               required: [],
             },
           },
+          {
+            name: "validate_config",
+            description: "Валидирует JSON конфигурацию динамичских форм по спецификации @gravity-ui/dynamic-forms / Validates JSON configuration of dynamic forms against @gravity-ui/dynamic-forms specification",
+            inputSchema: {
+              type: "object",
+              properties: {
+                config: {
+                  type: "object",
+                  description: "JSON объект конфигурации для валидации / JSON configuration object to validate",
+                },
+              },
+              required: ["config"],
+            },
+          },
         ],
       };
     });
@@ -251,6 +267,57 @@ class DynamicFormsMCPServer {
               },
             ],
           };
+        }
+
+        if (name === "validate_config") {
+          const config = args?.config;
+          if (config === undefined || config === null) {
+            throw new Error("Конфигурация не указана");
+          }
+
+          const validator = new Validator();
+          const result = validator.validate(config, configSchemaJson);
+
+          if (result.valid) {
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify(
+                    {
+                      valid: true,
+                      message: "Конфигурация валидна / Configuration is valid",
+                    },
+                    null,
+                    2
+                  ),
+                },
+              ],
+            };
+          } else {
+            const errors = result.errors.map((error: ValidationError) => ({
+              path: error.property,
+              message: error.message,
+              schema: error.schema,
+            }));
+
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: JSON.stringify(
+                    {
+                      valid: false,
+                      errors: errors,
+                      errorCount: errors.length,
+                    },
+                    null,
+                    2
+                  ),
+                },
+              ],
+            };
+          }
         }
 
         throw new Error(`Unknown tool: ${name}`);
